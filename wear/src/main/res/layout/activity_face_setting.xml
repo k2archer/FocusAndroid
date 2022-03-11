@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".face.FaceSettingActivity">
+
+    <TextView
+        android:id="@+id/tv_title_setting"
+        android:text="设置"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="24dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_setting"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingTop="4dp"
+        android:layout_height="0dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:paddingBottom="32dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/tv_is_debug_setting"
+                android:text="调试模式(开)"
+                android:gravity="center"
+                android:background="@drawable/button"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="8dp"
+                android:layout_height="40dp" />
+
+            <Button
+                android:text="番茄时间：25:00"
+                android:gravity="center"
+                android:clickable="false"
+                android:textColor="@color/dialog_shade_background"
+                android:background="@drawable/button"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="8dp"
+                android:layout_height="40dp" />
+
+            <Button
+                android:layout_width="match_parent"
+                android:textColor="@color/dialog_shade_background"
+                android:layout_height="40dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/button"
+                android:gravity="center"
+                android:clickable="false"
+                android:text="休息时间：5:00" />
+
+            <Button
+                android:id="@+id/tv_ring_time_setting"
+                android:text="结束提示时间：5 秒"
+                android:gravity="center"
+                android:background="@drawable/button"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="8dp"
+                android:layout_height="40dp" />
+
+            <Button
+                android:id="@+id/tv_ring_type_setting"
+                android:text="响铃类型"
+                android:gravity="center"
+                android:background="@drawable/button"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="8dp"
+                android:layout_height="40dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
