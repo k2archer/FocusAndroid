@@ -4,13 +4,18 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.wearable.view.WearableDialogHelper;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +27,9 @@ public class FaceSettingActivity extends AppCompatActivity {
     public static final String ON_DEBUG_MODE = "on_debug_mode";
     public static final String RING_TIME = "ring_time";
     public static final String RING_TYPE = "ring_type";
+    public static final String RING_VOLUME_VALUE = "ring_volume_value";
+    public static final String RING_VIBRATOR_VALUE = "ring_vibrator_value";
+
 
     enum RingType {
         VIBRATION(0),
@@ -129,20 +137,87 @@ public class FaceSettingActivity extends AppCompatActivity {
         btnRingType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                WearableDialogHelper.DialogBuilder b = new WearableDialogHelper.DialogBuilder(FaceSettingActivity.this);
-                b.setTitle("选择响铃类型");
+//                WearableDialogHelper.DialogBuilder b = new WearableDialogHelper.DialogBuilder(FaceSettingActivity.this);
+                final android.app.AlertDialog.Builder b = new android.app.AlertDialog.Builder(FaceSettingActivity.this);
 
-                String[] items = new String[]{"响铃", "震动", "震动和响铃"};
-                b.setSingleChoiceItems(items, 0, new DialogInterface.OnClickListener() {
+                b.setTitle("选择响铃类型");
+                final View view = LayoutInflater.from(FaceSettingActivity.this).inflate(R.layout.dialog_ring_setting, null);
+                b.setView(view);
+                final android.app.AlertDialog d = b.create();
+
+                final TextView tvRingVolume = view.findViewById(R.id.ring_volume_value_tv);
+                int volume  = LocalStorageKVUtils.decodeInt(RING_VOLUME_VALUE, 1);
+                tvRingVolume.setText("音量: " + volume);
+                SeekBar sbVolume = view.findViewById(R.id.ring_volume_sb);
+                sbVolume.setProgress(volume);
+                sbVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        LocalStorageKVUtils.encodeInt(RING_TYPE, which);
-                        btnRingType.setText("响铃类型: " + RingType.getString(RingType.codeOf(which)));
-                        dialog.dismiss();
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        tvRingVolume.setText("音量: " + progress);
+                        LocalStorageKVUtils.encodeInt(RING_VOLUME_VALUE, progress);
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
                     }
                 });
-                b.create().show();
+
+                final TextView tvRingVibrator = view.findViewById(R.id.ring_vibration_value_tv);
+                int vibration= LocalStorageKVUtils.decodeInt(RING_VIBRATOR_VALUE, 1);
+                tvRingVibrator.setText("震动: " +vibration );
+                SeekBar sbVibrator = view.findViewById(R.id.ring_vibration_sb);
+                sbVibrator.setProgress(vibration);
+                sbVibrator.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        tvRingVibrator.setText("震动: " + progress);
+                        LocalStorageKVUtils.encodeInt(RING_VIBRATOR_VALUE, progress);
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                });
+
+                RadioGroup radioGroup = view.findViewById(R.id.type_rg);
+                radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+//                String[] items = new String[]{"响铃", "震动", "震动和响铃"};
+                        switch (checkedId) {
+                            case R.id.rb_0:
+                                LocalStorageKVUtils.encodeInt(RING_TYPE, 0);
+                                btnRingType.setText("响铃类型: " + RingType.getString(RingType.codeOf(0)));
+                                break;
+                            case R.id.rb_1:
+                                LocalStorageKVUtils.encodeInt(RING_TYPE, 1);
+                                btnRingType.setText("响铃类型: " + RingType.getString(RingType.codeOf(1)));
+                                break;
+                            case R.id.rb_2:
+                                LocalStorageKVUtils.encodeInt(RING_TYPE, 2);
+                                btnRingType.setText("响铃类型: " + RingType.getString(RingType.codeOf(2)));
+                                break;
+                        }
+                        d.dismiss();
+                    }
+                });
+
+                d.show();
             }
         });
+
+
     }
 }

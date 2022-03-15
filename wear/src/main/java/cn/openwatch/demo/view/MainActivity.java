@@ -20,6 +20,8 @@ import cn.openwatch.communication.listener.SpecialTypeListener;
 import cn.openwatch.demo.R;
 import cn.openwatch.demo.component.WearListView;
 
+import androidx.lifecycle.MutableLiveData;
+
 public class MainActivity extends Activity
         implements ConnectListener, DataListener, MessageListener, SpecialTypeListener {
 

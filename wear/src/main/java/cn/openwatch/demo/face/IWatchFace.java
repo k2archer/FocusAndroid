@@ -63,6 +63,8 @@ import static android.media.AudioManager.STREAM_RING;
 import static cn.openwatch.demo.face.FaceSettingActivity.ON_DEBUG_MODE;
 import static cn.openwatch.demo.face.FaceSettingActivity.RING_TIME;
 import static cn.openwatch.demo.face.FaceSettingActivity.RING_TYPE;
+import static cn.openwatch.demo.face.FaceSettingActivity.RING_VIBRATOR_VALUE;
+import static cn.openwatch.demo.face.FaceSettingActivity.RING_VOLUME_VALUE;
 import static cn.openwatch.demo.utils.AlarmManagerUtils.FLAG_RECEIVER_INCLUDE_BACKGROUND;
 
 public class IWatchFace extends CanvasWatchFaceService {
@@ -417,7 +419,7 @@ public class IWatchFace extends CanvasWatchFaceService {
                     });
                     builder.setNegativeButton("取消", null);
                     AlertDialog d = builder.create();
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                         d.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                     } else {
                         d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
@@ -512,7 +514,7 @@ public class IWatchFace extends CanvasWatchFaceService {
         //region TickingRing
 
         private long ringStartTime = 0;
-        private long ringMaxTime = LocalStorageKVUtils.decodeInt(RING_TIME, 5); // Ring 最大时间(秒)
+//        private long ringMaxTime = LocalStorageKVUtils.decodeInt(RING_TIME, 5); // Ring 最大时间(秒)
         private Vibrator ringVibrator;
         private Ringtone ringRingtone;
         private PendingIntent ringPendingIntent;
@@ -534,18 +536,23 @@ public class IWatchFace extends CanvasWatchFaceService {
                 ringRingtone = RingtoneManager.getRingtone(IWatchFace.this, n);
                 // 设置音量
                 AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                mAudioManager.setStreamVolume(AudioManager.STREAM_RING, 1, AudioManager.FLAG_ALLOW_RINGER_MODES);
+                int volume = LocalStorageKVUtils.decodeInt(RING_VOLUME_VALUE, 1);
+                Log.e("TAG", "startTickingRing: volume: " + volume );
+                mAudioManager.setStreamVolume(AudioManager.STREAM_RING, volume, AudioManager.FLAG_ALLOW_RINGER_MODES);
                 ringRingtone.play();
             }
             if (ringType == FaceSettingActivity.RingType.VIBRATION.getCode()
                     || ringType == FaceSettingActivity.RingType.SOUND_VIBRATION.getCode()) {
                 // 开启振动
-                ringVibrator = VibratorUtils.vibrator(IWatchFace.this, new long[]{700, 300}, 0);
+                int vibration = LocalStorageKVUtils.decodeInt(RING_VIBRATOR_VALUE, 3);
+                Log.e("TAG", "startTickingRing: vibration: " + vibration );
+                ringVibrator = VibratorUtils.vibrator(IWatchFace.this, new long[]{(10 - vibration) * 100, vibration * 100}, 0);
             }
 
             // 设置最大响铃停止时间
             Bundle extra = new Bundle();
             extra.putInt(INTENT_KEY_ACTION, ACTION_CODE_RING_STOP);
+            int ringMaxTime = LocalStorageKVUtils.decodeInt(RING_TIME, 5);
             long triggerTime = System.currentTimeMillis() + 1000 * ringMaxTime; // 停止响铃触发时间
             ringPendingIntent = AlarmManagerUtils.sendAlarmPendingIWatchFace(IWatchFace.this, 0, extra, triggerTime);
             // 开启通知
@@ -588,7 +595,7 @@ public class IWatchFace extends CanvasWatchFaceService {
                     }
                 });
                 AlertDialog d = builder.create();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                     d.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
                 } else {
                     d.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);

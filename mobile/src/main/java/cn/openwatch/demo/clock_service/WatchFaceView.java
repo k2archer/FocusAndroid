@@ -51,7 +51,7 @@ public class WatchFaceView {
         WindowManager.LayoutParams mParams = new WindowManager.LayoutParams();
 
         // compatible
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             mParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         } else {
             mParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
@@ -108,7 +108,7 @@ public class WatchFaceView {
                     dialog = builder.create();
 
 //                    dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                         // 6.0
                         dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY));
 //                        params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;

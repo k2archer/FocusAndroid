@@ -1,12 +1,15 @@
 package cn.openwatch.demo.clock_service.view;
 
 import android.app.AlertDialog;
+import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Binder;
 import android.os.Build;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +20,11 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.k2archer.demo.common.path.DataPackage;
 import com.k2archer.demo.common.path.DataPath;
 import com.k2archer.demo.common.path.WearDataPackage;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import cn.openwatch.communication.ErrorStatus;
 import cn.openwatch.communication.OpenWatchCommunication;
@@ -78,7 +83,7 @@ public class FocusMainView extends BaseView implements UserContract.View, WebSoc
         WindowManager.LayoutParams params = new WindowManager.LayoutParams();
 
         // compatible
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         } else {
             params.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
@@ -141,6 +146,7 @@ public class FocusMainView extends BaseView implements UserContract.View, WebSoc
     }
 
     int test_count;
+
     private void startTicking(long time) {
 
         if (!userPresenter.isLogin()) {
@@ -205,7 +211,7 @@ public class FocusMainView extends BaseView implements UserContract.View, WebSoc
                     }
                 });
         AlertDialog dialog = dialogBuilder.create();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY));
         } else {
             dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
@@ -236,7 +242,7 @@ public class FocusMainView extends BaseView implements UserContract.View, WebSoc
         dialog = builder.create();
 
 //                    dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             // 6.0
             dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY));
 //                        params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -270,14 +276,82 @@ public class FocusMainView extends BaseView implements UserContract.View, WebSoc
                     }
                 });
         AlertDialog dialog = dialogBuilder.create();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY));
         } else {
             dialog.getWindow().setType((WindowManager.LayoutParams.TYPE_SYSTEM_ALERT));
         }
 
-        dialog.show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1 && Settings.canDrawOverlays(context)) {
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(context)) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                context.startActivity(intent);
+            }
+        }
+
+        if (checkFloatPermission(context)) {
+            dialog.show();
+        }
+
+//        int LAYOUT_FLAG;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+//        } else {
+//            LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
+//        }
+//
+//        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+//                WindowManager.LayoutParams.WRAP_CONTENT,
+//                WindowManager.LayoutParams.WRAP_CONTENT,
+//                LAYOUT_FLAG,
+//                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+//                        | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+//                PixelFormat.TRANSLUCENT);
+
     }
+
+    public boolean checkFloatPermission(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT)
+            return true;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            try {
+                Class cls = Class.forName("android.content.Context");
+                Field declaredField = cls.getDeclaredField("APP_OPS_SERVICE");
+                declaredField.setAccessible(true);
+                Object obj = declaredField.get(cls);
+                if (!(obj instanceof String)) {
+                    return false;
+                }
+                String str2 = (String) obj;
+                obj = cls.getMethod("getSystemService", String.class).invoke(context, str2);
+                cls = Class.forName("android.app.AppOpsManager");
+                Field declaredField2 = cls.getDeclaredField("MODE_ALLOWED");
+                declaredField2.setAccessible(true);
+                Method checkOp = cls.getMethod("checkOp", Integer.TYPE, Integer.TYPE, String.class);
+                int result = (Integer) checkOp.invoke(obj, 24, Binder.getCallingUid(), context.getPackageName());
+                return result == declaredField2.getInt(cls);
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                AppOpsManager appOpsMgr = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+                if (appOpsMgr == null)
+                    return false;
+                int mode = appOpsMgr.checkOpNoThrow("android:system_alert_window", android.os.Process.myUid(), context
+                        .getPackageName());
+                return Settings.canDrawOverlays(context) || mode == AppOpsManager.MODE_ALLOWED || mode == AppOpsManager.MODE_IGNORED;
+            } else {
+                return Settings.canDrawOverlays(context);
+            }
+        }
+    }
+
 
     @Override
     public void onLogin(UserInfo userInfo) {
