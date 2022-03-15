@@ -27,6 +27,8 @@ android {
 
 }
 
+project.setBuildDir(getRootDir().toString() + "/building/" + project.getName() + "/build")
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
